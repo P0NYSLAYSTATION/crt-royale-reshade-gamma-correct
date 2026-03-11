@@ -1,9 +1,9 @@
-This is a fork of akgunter's port, with gamma-correction options added.
+This is a fork of akgunter's port, with gamma-correction options added and a closer approximation of the original libretro version's gaussian beam sampling, significantly reducing clipping and crush.
 
 ### USING THE ENCODING AND DECODING OPTIONS
 Using one of the provided encoding options will generally always reduce the amount of crush. 
 
-Old games that do not use an encoding standard are usually closer to Rec.709 or pure power-law, so either decode Rec.709 or use the linear encode and decode.
+Old games that do not use an encoding standard are usually closer to BT.1886 or pure power-law, so either decode BT.1886 or use the linear encode and decode.
 
 From mid-2000s onward, most games are sRGB encoded.
 
@@ -36,6 +36,7 @@ The shader's UI includes tips and descriptions for setting it up well. Prioritiz
 
 
 You can go to [the wiki](https://github.com/akgunter/crt-royale-reshade/wiki) for more detailed info on the different options.
+
 
 
 
