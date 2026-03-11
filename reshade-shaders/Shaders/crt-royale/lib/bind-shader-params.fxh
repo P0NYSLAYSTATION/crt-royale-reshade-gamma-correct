@@ -600,6 +600,31 @@ uniform bool rec709_encode_enabled <
 > = false;
 
 
+uniform bool bt1886_decode_enabled <
+    ui_label = "BT.1886 Decoding";
+    ui_tooltip = "Toggle BT.1886 decoding";
+    ui_type = "checkbox";
+    ui_category = "Colors and Effects";
+> = false;
+
+uniform bool bt1886_encode_enabled <
+    ui_label = "BT.1886 Encoding";
+    ui_tooltip = "Toggle BT.1886 encoding";
+    ui_type = "checkbox";
+    ui_category = "Colors and Effects";
+> = false;
+
+uniform float bt1886_black_level <
+    ui_label = "BT.1886 Black Level";
+    ui_tooltip = "Black level parameter for BT.1886 encoding/decoding";
+    ui_type = "slider";
+    ui_min = 0.0;
+    ui_max = 1.0;
+    ui_step = 0.001;
+    ui_category = "Colors and Effects";
+> = 0.001;
+
+
 uniform bool linear_decode_enabled <
     ui_label = "Linear Decoding";
     ui_tooltip = "Force gamma 1.0 for decode";

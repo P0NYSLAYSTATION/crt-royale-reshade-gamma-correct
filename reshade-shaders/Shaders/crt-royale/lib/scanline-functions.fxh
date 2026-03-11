@@ -471,22 +471,26 @@ float get_gaussian_beam_strength(
     const float sigma_range,
     const float shape_range
 ) {
-    // entry point in original is scanline_contrib()
-    // this is based on scanline_generalized_gaussian_sampled_contrib() from original
-
-    //  See scanline_generalized_gaussian_integral_contrib() for details!
-    //  generalized sample =
-    //      beta/(2*alpha*gamma(1/beta)) * e**(-(|x|/alpha)**beta)
     const float alpha = sqrt(2.0) * get_gaussian_sigma(color, sigma_range);
     const float beta = get_generalized_gaussian_beta(color, shape_range);
-    //  Avoid repeated divides:
     const float alpha_inv = 1.0 / alpha;
     const float beta_inv = 1.0 / beta;
     const float scale = color * beta * 0.5 * alpha_inv / gamma_impl(beta_inv, beta);
-    
-    return scale * exp(-pow(abs(dist*alpha_inv), beta));
-}
 
+    if (beam_antialias_level > 0.5) {
+        const float sample_offset = 1.0 / 3.0;
+        const float dist2 = dist + sample_offset;
+        const float dist3 = abs(dist - sample_offset);
+
+        const float weight1 = exp(-pow(abs(dist * alpha_inv), beta));
+        const float weight2 = exp(-pow(abs(dist2 * alpha_inv), beta));
+        const float weight3 = exp(-pow(abs(dist3 * alpha_inv), beta));
+
+        return scale * (weight1 + weight2 + weight3) / 3.0;
+    }
+
+    return scale * exp(-pow(abs(dist * alpha_inv), beta));
+}
 float get_linear_beam_strength(
     const float dist,
     const float color,
