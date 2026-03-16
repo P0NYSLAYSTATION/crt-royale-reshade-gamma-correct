@@ -11,7 +11,9 @@ From mid-2000s onward, most games are sRGB encoded.
 
 If you have selected a decoding standard then you should usually also encode to that standard, otherwise use whichever standard is closer to your physical monitor characteristics and settings.
 
-If you are playing a game that applies its own gamma ramp, you should set that to a neutral value if possible. If that is not possible, for example in Goldsource engine games, then better results will be achieved by using the linear encode and decode, in-game gamma ramp to 2.2 or 2.4.
+If you are playing a game that applies its own gamma ramp, you should set that to a neutral value if possible. If that is not possible, for example in Goldsource engine games, then better results will be achieved by using the bt.1886 standard regardless of what encoding standard the game actually uses, in-game gamma ramp to 2.2 or 2.4. Unreal Engine 1 uses an inverse gamma ramp, so you will need to max out the in-game gamma ramp, encode to bt.1886 and decode to linear.
+
+When using a narrow scanline thickness, you may still see some blown out overbrights and clipped whites. These can usually be fixed by raising the bloom excess and bloom underestimation parameters, which will fix this issue at the cost of a slightly blurrier overall image.
 
 Unfortunately the shader produces a lot of severe artefacts when using float textures so don't expect any HDR encoding standards to be added anytime soon, fixing those artefacts would be a much more significant task than the minor edits and additions this fork currently provides.
 
