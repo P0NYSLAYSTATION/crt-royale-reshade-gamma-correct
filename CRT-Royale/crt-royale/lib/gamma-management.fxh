@@ -183,30 +183,46 @@ float3 encode_bt1886(float3 l, float black_level, float gamma)
     return saturate(v);
 }
 
-float3 encode_rec709(const float3 input, const float black_level, const float gamma) {
-    float invg = 1.0 / gamma;
+float3 encode_rec709(const float3 input, const float black_level, const float gamma)
+{
     float lb = saturate(black_level);
-    float lw_p = 1.0;
-    float lb_p = pow(lb, invg);
-    float d = lw_p - lb_p;
-    float b = lb_p / d;
 
-    float3 low = 4.5 * input;
-    float3 high = 1.099 * pow(input, float3(0.45, 0.45, 0.45)) - 0.099;
-    return saturate(lerp(low, high, step(float3(0.018, 0.018, 0.018), input)) - b);
+    if (lb <= 0.0)
+    {
+        float3 low = 4.5 * input;
+        float3 high = 1.099 * pow(input, float3(0.45, 0.45, 0.45)) - 0.099;
+        return saturate(lerp(low, high, step(float3(0.018, 0.018, 0.018), input)));
+    }
+    else
+    {
+        float scale = max(1.0 - lb, 1e-6);
+        float3 x = saturate((input - lb) / scale);
+
+        float3 low = 4.5 * x;
+        float3 high = 1.099 * pow(x, float3(0.45, 0.45, 0.45)) - 0.099;
+        return saturate(lerp(low, high, step(float3(0.018, 0.018, 0.018), x)));
+    }
 }
 
-float3 encode_srgb(const float3 input, const float black_level, const float gamma) {
-    float invg = 1.0 / gamma;
+float3 encode_srgb(const float3 input, const float black_level, const float gamma)
+{
     float lb = saturate(black_level);
-    float lw_p = 1.0;
-    float lb_p = pow(lb, invg);
-    float d = lw_p - lb_p;
-    float b = lb_p / d;
 
-    float3 low = input * 12.92;
-    float3 high = 1.055 * pow(input, float3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) - 0.055;
-    return saturate(lerp(low, high, step(float3(0.0031308, 0.0031308, 0.0031308), input)) - b);
+    if (lb <= 0.0)
+    {
+        float3 low = input * 12.92;
+        float3 high = 1.055 * pow(input, float3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) - 0.055;
+        return saturate(lerp(low, high, step(float3(0.0031308, 0.0031308, 0.0031308), input)));
+    }
+    else
+    {
+        float scale = max(1.0 - lb, 1e-6);
+        float3 x = saturate((input - lb) / scale);
+
+        float3 low = x * 12.92;
+        float3 high = 1.055 * pow(x, float3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) - 0.055;
+        return saturate(lerp(low, high, step(float3(0.0031308, 0.0031308, 0.0031308), x)));
+    }
 }
 
 float4 encode_output_opaque(const float4 color, const float gamma)
@@ -243,34 +259,30 @@ float4 encode_output(const float4 color, const float gamma)
     }
 }
 
-float3 decode_srgb(const float3 input, const float black_level, const float gamma) {
-    float invg = 1.0 / gamma;
-    float lb = saturate(black_level);
-    float lw_p = 1.0;
-    float lb_p = pow(lb, invg);
-    float d = lw_p - lb_p;
-    float a = pow(d, gamma);
-    float b = lb_p / d;
+float3 decode_srgb(const float3 input, const float black_level, const float gamma)
+{
+    float3 low = input / 12.92;
+    float3 high = pow((input + 0.055) / 1.055, float3(2.4, 2.4, 2.4));
+    float3 x = lerp(low, high, step(float3(0.04045, 0.04045, 0.04045), input));
 
-    float3 x = input + b;
-    float3 low = x / 12.92;
-    float3 high = pow((x + 0.055) / 1.055, float3(2.4, 2.4, 2.4));
-    return a * lerp(low, high, step(float3(0.04045, 0.04045, 0.04045), x));
+    float lb = saturate(black_level);
+    if (lb <= 0.0)
+        return x;
+
+    return lb + (1.0 - lb) * x;
 }
 
-float3 decode_rec709(const float3 input, const float black_level, const float gamma) {
-    float invg = 1.0 / gamma;
-    float lb = saturate(black_level);
-    float lw_p = 1.0;
-    float lb_p = pow(lb, invg);
-    float d = lw_p - lb_p;
-    float a = pow(d, gamma);
-    float b = lb_p / d;
+float3 decode_rec709(const float3 input, const float black_level, const float gamma)
+{
+    float3 low = input / 4.5;
+    float3 high = pow((input + 0.099) / 1.099, float3(1.0 / 0.45, 1.0 / 0.45, 1.0 / 0.45));
+    float3 x = lerp(low, high, step(float3(0.081, 0.081, 0.081), input));
 
-    float3 x = input + b;
-    float3 low = x / 4.5;
-    float3 high = pow((x + 0.099) / 1.099, float3(1.0/0.45, 1.0/0.45, 1.0/0.45));
-    return a * lerp(low, high, step(float3(0.081, 0.081, 0.081), x));
+    float lb = saturate(black_level);
+    if (lb <= 0.0)
+        return x;
+
+    return lb + (1.0 - lb) * x;
 }
 
 float4 decode_input_opaque(const float4 color, const float gamma)
