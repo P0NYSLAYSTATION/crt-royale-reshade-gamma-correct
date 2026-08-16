@@ -158,11 +158,11 @@
 
 //////////////////////  COLOR ENCODING/DECODING FUNCTIONS  /////////////////////
 
-float3 decode_bt1886(float3 v, float black_level, float gamma)
+float3 decode_bt1886(float3 v, float black_level, float white_level, float gamma)
 {
     float invg = 1.0 / gamma;
     float lb = saturate(black_level);
-    float lw_p = 1.0;
+    float lw_p = pow(saturate(white_level), invg);
     float lb_p = pow(lb, invg);
     float d = lw_p - lb_p;
     float a = pow(d, gamma);
@@ -170,11 +170,11 @@ float3 decode_bt1886(float3 v, float black_level, float gamma)
     return a * pow(max(v + b, 0.0), float3(gamma, gamma, gamma));
 }
 
-float3 encode_bt1886(float3 l, float black_level, float gamma)
+float3 encode_bt1886(float3 l, float black_level, float white_level, float gamma)
 {
     float invg = 1.0 / gamma;
     float lb = saturate(black_level);
-    float lw_p = 1.0;
+    float lw_p = pow(saturate(white_level), invg);
     float lb_p = pow(lb, invg);
     float d = lw_p - lb_p;
     float a = pow(d, gamma);
@@ -231,7 +231,7 @@ float4 encode_output_opaque(const float4 color, const float gamma)
     if (abs(g - 1.0) < 0.0001) {
         return float4(pow(color.rgb, float3(1.0, 1.0, 1.0)), 1);
     } else if (bt1886_encode_enabled) {
-        return float4(encode_bt1886(color.rgb, black_level, g), 1);
+        return float4(encode_bt1886(color.rgb, black_level, white_level, g), 1);
     } else if (srgb_encode_enabled) {
         return float4(encode_srgb(color.rgb, black_level, g), 1);
     } else if (rec709_encode_enabled) {
@@ -248,7 +248,7 @@ float4 encode_output(const float4 color, const float gamma)
     if (abs(g - 1.0) < 0.0001) {
         return float4(pow(color.rgb, float3(1.0, 1.0, 1.0)), color.a);
     } else if (bt1886_encode_enabled) {
-        return float4(encode_bt1886(color.rgb, black_level, g), color.a);
+        return float4(encode_bt1886(color.rgb, black_level, white_level, g), color.a);
     } else if (srgb_encode_enabled) {
         return float4(encode_srgb(color.rgb, black_level, g), color.a);
     } else if (rec709_encode_enabled) {
@@ -291,7 +291,7 @@ float4 decode_input_opaque(const float4 color, const float gamma)
     if (abs(g - 1.0) < 0.0001) {
         return float4(pow(color.rgb, float3(1.0, 1.0, 1.0)), 1);
     } else if (bt1886_decode_enabled) {
-        return float4(decode_bt1886(color.rgb, black_level, g), 1);
+        return float4(decode_bt1886(color.rgb, black_level, white_level, g), 1);
     } else if (srgb_decode_enabled) {
         return float4(decode_srgb(color.rgb, black_level, g), 1);
     } else if (rec709_decode_enabled) {
@@ -308,7 +308,7 @@ float4 decode_input(const float4 color, const float gamma)
     if (abs(g - 1.0) < 0.0001) {
         return float4(pow(color.rgb, float3(1.0, 1.0, 1.0)), color.a);
     } else if (bt1886_decode_enabled) {
-        return float4(decode_bt1886(color.rgb, black_level, g), color.a);
+        return float4(decode_bt1886(color.rgb, black_level, white_level, g), color.a);
     } else if (srgb_decode_enabled) {
         return float4(decode_srgb(color.rgb, black_level, g), color.a);
     } else if (rec709_decode_enabled) {
@@ -318,6 +318,7 @@ float4 decode_input(const float4 color, const float gamma)
         return float4(pow(color.rgb, gg), color.a);
     }
 }
+
 ///////////////////////////  TEXTURE LOOKUP WRAPPERS  //////////////////////////
 
 //  "SMART" LINEARIZING TEXTURE LOOKUP FUNCTIONS:

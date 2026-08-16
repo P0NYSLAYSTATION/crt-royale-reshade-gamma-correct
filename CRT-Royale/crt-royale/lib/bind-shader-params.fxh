@@ -620,9 +620,19 @@ uniform float black_level <
     ui_type = "slider";
     ui_min = 0.0;
     ui_max = 1.0;
-    ui_step = 0.001;
+    ui_step = 0.0001;
     ui_category = "Colors and Effects";
-> = 0.001;
+> = 0.0010;
+
+uniform float white_level <
+    ui_label = "White Level";
+    ui_tooltip = "White level parameter for encoding/decoding";
+    ui_type = "slider";
+    ui_min = 0.0;
+    ui_max = 1.0;
+    ui_step = 0.0001;
+    ui_category = "Colors and Effects";
+> = 1.0000;
 
 
 uniform bool linear_decode_enabled <
