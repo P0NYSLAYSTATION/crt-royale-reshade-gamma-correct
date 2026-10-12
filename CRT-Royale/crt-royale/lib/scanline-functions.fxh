@@ -478,6 +478,18 @@ float get_gaussian_beam_strength(
     const float scale = color * beta * 0.5 * alpha_inv / gamma_impl(beta_inv, beta);
 
     if (beam_antialias_level > 0.5) {
+        if (scanline_thickness < 4) {
+            // Six midpoint samples over the same footprint as the original 3x AA.
+            float weight_sum = 0.0;
+            [unroll]
+            for (int i = 0; i < 6; i++) {
+                const float sample_offset = (float(i) + 0.5) / 6.0 - 0.5;
+                const float sample_dist = dist + sample_offset;
+                weight_sum += exp(-pow(abs(sample_dist * alpha_inv), beta));
+            }
+            return scale * weight_sum / 6.0;
+        }
+
         const float sample_offset = 1.0 / 3.0;
         const float dist2 = dist + sample_offset;
         const float dist3 = abs(dist - sample_offset);
